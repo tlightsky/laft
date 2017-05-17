@@ -3,3 +3,6 @@ all:
 
 uberjar:
 	lein uberjar
+
+test:
+	lein test

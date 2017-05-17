@@ -1,6 +1,7 @@
 (ns laft.adapter
   (:gen-class)
-  (:use [seesaw core swingx keymap util options])
+  (:use [seesaw core swingx keymap util options]
+        [laft utils settings])
   (:require [seesaw.bind :as b]
             [seesaw.dev :as dev])
   (:import [com.alee.laf.rootpane WebFrame]
@@ -8,8 +9,12 @@
            [com.alee.laf WebLookAndFeel]
            [com.alee.laf.menu WebMenu]
            [com.alee.laf.tabbedpane WebTabbedPane]
+           [com.alee.laf.list WebList]
+           [com.alee.laf.panel WebPanel]
+           [com.alee.laf.scroll WebScrollPane]
            [javax.swing UIManager]
-           [java.awt.event WindowAdapter]))
+           [java.awt.event WindowAdapter]
+           [java.awt Rectangle]))
 ;; adapt seesaw to web-ui
 
 (defn web-install []
@@ -17,6 +22,14 @@
 
 (defn set-bounds! [f r]
   (.setBounds f r))
+
+(defn load-location! [frame]
+  (let [bounds (:bounds @setting)
+        [a b c d] bounds]
+    (if bounds
+      (.setBounds frame a b c d)
+      (.center frame))
+  frame))
 
 (defn web-frame
   "Create a JFrame. Options:
@@ -170,3 +183,21 @@
     http://download.oracle.com/javase/6/docs/api/javax/swing/JMenu.html"
   [& opts]
   (apply-options (construct WebMenu) opts))
+
+(defn web-listbox
+  "Create a list box (JList). Additional options:
+
+    :model A ListModel, or a sequence of values with which a DefaultListModel
+           will be constructed.
+    :renderer A cell renderer to use. See (seesaw.cells/to-cell-renderer).
+
+  Notes:
+
+    Retrieving and setting the current selection of the list box is fully
+    supported by the (selection) and (selection!) functions.
+
+  See:
+    http://download.oracle.com/javase/6/docs/api/javax/swing/JList.html
+  "
+  [& args]
+  (apply-options (construct WebList) args))

@@ -1,36 +1,24 @@
 # laft
 
-FIXME: description
+swing ui with sia backend, help upload things to sia network.
 
 ## Installation
 
-Download from http://example.com/FIXME.
 
 ## Usage
 
-FIXME: explanation
+just run jar
 
-    $ java -jar laft-0.1.0-standalone.jar [args]
 
 ## Options
 
-FIXME: listing of options this app accepts.
+### auto sync folder files to sia
 
-## Examples
 
-...
-
-### Bugs
-
-...
-
-### Any Other Sections
-### That You Think
-### Might be Useful
 
 ## License
 
-Copyright © 2017 FIXME
+Copyright © 2017
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
