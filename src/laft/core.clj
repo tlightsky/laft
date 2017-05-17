@@ -20,10 +20,14 @@
     :center (web-progress-bar :id :probar :min 0 :max 100)
     :south  (button :id :launch :text "Launch")))
 
+(defn list-box-pane []
+  (doto (web-listbox :id :list :model [1 2 3 4])
+    (.setEditable true)))
+
 (defn list-tab []
   (border-panel :id :ltab
-    :size [300 :by 400]
-    :center (scrollable (web-listbox :id :list :model [1 2 3 4]))))
+    ; :size [300 :by 400]
+    :center (scrollable (list-box-pane))))
 
 (defn exit-fn [e]
   (println "saving config...")
@@ -51,5 +55,4 @@
       (load-location!)
       (listen :window-closed
         exit-fn)
-      pack!
       show!)))
