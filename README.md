@@ -7,7 +7,9 @@ swing ui with sia backend, help upload things to sia network.
 
 ## Usage
 
-just run jar
+* open and sync sia(d/-ui) before use this
+* install java
+* run jar
 
 
 ## Options

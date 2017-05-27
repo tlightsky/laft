@@ -1,8 +1,10 @@
 (ns laft.settings
   (:gen-class)
+  (:use [laft global])
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
-            [me.raynes.fs :as fs])
+            [me.raynes.fs :as fs]
+            [clojure.core.async :as async])
   (:import  [java.io File FileNotFoundException]))
 
 (defonce sep File/separator)
@@ -24,3 +26,11 @@
   (let [p (home-path setting-fname)
         s (prn-str @setting)]
     (spit p s)))
+
+(defn add-sync-list! [folder]
+  (let [sync-list (or (:sync-list @setting) {})]
+    (if (contains? sync-list folder)
+      (async/put! message-dialog-chan ["Notice" "Folder already exist"])
+      (do
+        (swap! setting assoc :sync-list (assoc sync-list folder {}))
+        (save-settings!)))))

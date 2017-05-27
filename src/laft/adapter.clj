@@ -1,9 +1,11 @@
 (ns laft.adapter
   (:gen-class)
   (:use [seesaw core swingx keymap util options]
-        [laft utils settings])
+        [laft utils settings global])
   (:require [seesaw.bind :as b]
-            [seesaw.dev :as dev])
+            [seesaw.dev :as dev]
+            [seesaw.font :as font]
+            [clojure.core.async :as async])
   (:import [com.alee.laf.rootpane WebFrame]
            [com.alee.laf.progressbar WebProgressBar]
            [com.alee.laf WebLookAndFeel]
@@ -11,13 +13,26 @@
            [com.alee.laf.tabbedpane WebTabbedPane]
            [com.alee.laf.list WebList]
            [com.alee.laf.panel WebPanel]
+           [com.alee.laf.optionpane WebOptionPane]
            [com.alee.laf.scroll WebScrollPane]
            [javax.swing UIManager]
            [java.awt.event WindowAdapter]
            [java.awt Rectangle]))
 ;; adapt seesaw to web-ui
 
+(defn setup-font! []
+  (set! WebLookAndFeel/globalControlFont (font/font "宋体-PLAIN-12"))
+  (set! WebLookAndFeel/globalAlertFont (font/font "宋体-PLAIN-13"))
+  (set! WebLookAndFeel/globalMenuFont (font/font "宋体-PLAIN-12"))
+  (set! WebLookAndFeel/globalAcceleratorFont (font/font "宋体-PLAIN-12"))
+  (set! WebLookAndFeel/globalTitleFont (font/font "宋体-PLAIN-14"))
+  (set! WebLookAndFeel/globalTextFont (font/font "宋体-PLAIN-12"))
+  (set! WebLookAndFeel/globalTooltipFont (font/font "宋体-PLAIN-12")))
+
+;; use song font if zh
 (defn web-install []
+  ;; TODO: discover not zh region
+  (setup-font!)
   (UIManager/setLookAndFeel (.getCanonicalName WebLookAndFeel)))
 
 (defn set-bounds! [f r]
@@ -30,6 +45,15 @@
       (.setBounds frame a b c d)
       (.center frame))
   frame))
+
+(defn message-dialog [title msg]
+  (WebOptionPane/showMessageDialog @rootpane msg title WebOptionPane/INFORMATION_MESSAGE))
+
+(defn start-message-dialog-loop []
+  (async/go-loop []
+    (when-let [[title msg] (async/<! message-dialog-chan)]
+      (message-dialog title msg)
+      (recur))))
 
 (defn web-frame
   "Create a JFrame. Options:
