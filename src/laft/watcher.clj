@@ -8,7 +8,7 @@
   (start-watch [{:path path
                  :event-types [:create :modify :delete]
                  :bootstrap (fn [path] (println "Starting to watch " path))
-                 :callback (fn [event filename] (println event filename))
+                 :callback (fn [event filename] (f event filename))
                  :options {:recursive true}}]))
 
 (def monitor-stops (atom {}))

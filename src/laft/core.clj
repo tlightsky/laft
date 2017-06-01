@@ -44,14 +44,19 @@
         item (selection folder-list)]
     (desktop-open! (fs/file item))))
 
+(defn list-click! [e]
+  (when (double-click? e)
+    (open-containing-folder! e)))
+
 (def static-popup
   (web-popup :items
-    [["Open containing folder" open-containing-folder!]
+    [;;["Open containing folder" open-containing-folder!]
      ["Delete" delete-action!]]))
 
-(defn folder-changed []
-  ;; rescan all folder for change files to upload
-  )
+(defn folder-changed [event filename]
+  ;; arrange a rescan all folder for changed files upload
+  (println event)
+  (println filename))
 
 (defn watch-folders []
  (let [sync-list (:sync-list @setting)]
@@ -85,7 +90,8 @@
                        [dnd/file-list-flavor [file]]))
           ; No :finish needed
         }))
-      (web-popup-option-handler static-popup)))
+      (web-popup-option-handler static-popup)
+      (listen :mouse list-click!)))
 
 (defn list-tab []
   (border-panel :id :ltab
