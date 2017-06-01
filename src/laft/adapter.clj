@@ -20,10 +20,12 @@
            [com.alee.laf.menu WebPopupMenu WebMenuItem]
            [javax.swing UIManager]
            [java.awt.event WindowAdapter]
-           [java.awt Rectangle Desktop]))
+           [java.awt Rectangle Desktop]
+           [java.util Locale]))
 ;; adapt seesaw to web-ui
 
-(defn setup-font! []
+(defn setup-zh-font! []
+  (println "setting up zh font")
   (set! WebLookAndFeel/globalControlFont (font/font "宋体-PLAIN-12"))
   (set! WebLookAndFeel/globalAlertFont (font/font "宋体-PLAIN-13"))
   (set! WebLookAndFeel/globalMenuFont (font/font "宋体-PLAIN-12"))
@@ -32,10 +34,15 @@
   (set! WebLookAndFeel/globalTextFont (font/font "宋体-PLAIN-12"))
   (set! WebLookAndFeel/globalTooltipFont (font/font "宋体-PLAIN-12")))
 
+(defn zh-lang? []
+  (let [local (Locale/getDefault)
+        lang  (.getLanguage local)]
+    (.equals lang "zh")))
+
 ;; use song font if zh
 (defn web-install []
-  ;; TODO: discover not zh region
-  (setup-font!)
+  (when (zh-lang?)
+    (setup-zh-font!))
   (UIManager/setLookAndFeel (.getCanonicalName WebLookAndFeel)))
 
 (defn set-bounds! [f r]
