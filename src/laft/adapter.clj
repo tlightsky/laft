@@ -1,7 +1,9 @@
 (ns laft.adapter
   (:gen-class)
   (:use [seesaw core swingx keymap util options]
-        [laft utils settings global])
+        [laft utils settings global]
+        [seesaw.widget-options :only [widget-option-provider]]
+        [seesaw.make-widget :only [make-widget*]])
   (:require [seesaw.bind :as b]
             [seesaw.dev :as dev]
             [seesaw.font :as font]
@@ -15,6 +17,7 @@
            [com.alee.laf.panel WebPanel]
            [com.alee.laf.optionpane WebOptionPane]
            [com.alee.laf.scroll WebScrollPane]
+           [com.alee.laf.menu WebPopupMenu WebMenuItem]
            [javax.swing UIManager]
            [java.awt.event WindowAdapter]
            [java.awt Rectangle]))
@@ -225,3 +228,61 @@
   "
   [& args]
   (apply-options (construct WebList) args))
+
+(defn web-popup
+  "Create a new popup menu. Additional options:
+
+    :items Sequence of menu item-like things (actions, icons, JMenuItems, etc)
+
+  Note that in many cases, the :popup option is what you want if you want to
+  show a context menu on a widget. It handles all the yucky mouse stuff and
+  fixes various eccentricities of Swing.
+
+  Notes:
+
+  See:
+    http://download.oracle.com/javase/6/docs/api/javax/swing/JPopupMenu.html"
+  [& opts]
+  (apply-options (construct WebPopupMenu) opts))
+
+(defn- ^WebMenuItem to-menu-item
+  [item]
+  (let [m (WebMenuItem. ^String (first item))]
+    (listen m :action (second item))
+    m))
+
+(defn- ^javax.swing.JPopupMenu make-popup [target arg event]
+  (cond
+    (instance? javax.swing.JPopupMenu arg) arg
+    (fn? arg)                              (popup :items (arg event))
+    :else (illegal-argument "Don't know how to make popup with %s" arg)))
+
+(defn web-popup-option-handler
+  [^java.awt.Component target arg]
+  (listen target :mouse
+    (fn [^java.awt.event.MouseEvent event]
+      (when (.isPopupTrigger event)
+        (let [p (make-popup target arg event)
+              x (.x (.getPoint event))
+              y (.y (.getPoint event))]
+          (println (.locationToIndex target (.getPoint event)))
+          (if (instance? WebList target)
+            (.setSelectedIndex target (.locationToIndex target (.getPoint event))))
+          (.show p (to-widget event) x y))))))
+
+(def web-popup-options
+  (merge
+    default-options
+    (option-map
+      (default-option :items
+        (fn [^WebPopupMenu menu items]
+          (println "options")
+          (doseq [item items]
+            (if-let [menu-item (to-menu-item item)]
+              (.add menu menu-item)
+              (if (= :separator item)
+                (.addSeparator menu)
+                (.add menu (make-widget item)))))))
+         )))
+
+(widget-option-provider WebPopupMenu web-popup-options)

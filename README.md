@@ -7,8 +7,8 @@ swing ui with sia backend, help upload things to sia network.
 
 ## Usage
 
-* open and sync sia(d/-ui) before use this
-* install java
+* opened , synced, funded(contract formed) sia is required
+* install java environment
 * run jar
 
 

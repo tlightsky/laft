@@ -30,33 +30,46 @@
     (doseq [folder (keys sync-list)]
       (.addElement model folder))))
 
+(defn delete-action! [e]
+  (let [{:keys [folder-list]} (group-by-id @rootpane)
+        sync-list (:sync-list @setting)
+        ; model (.getModel folder-list)
+        item (selection folder-list)]
+    (swap! setting assoc :sync-list (dissoc sync-list item))
+    (refresh-list!)))
+
+(def static-popup
+  (web-popup :items
+    [["Delete" delete-action!]
+     ]))
+
 (defn list-box-pane []
-  (doto (web-listbox :id :folder-list
-    :model []
-    :drag-enabled? true
-    :drop-mode :insert
-    :transfer-handler
-    (dnd/default-transfer-handler
-      :import [dnd/file-list-flavor (fn [{:keys [target data]}]
-                                      ; data is always List<java.io.File>
-                                      (doseq [file data]
-                                        ;; only accept folder
-                                        ;; should confirm
-                                        ;; add file path to settings
-                                        (if (fs/directory? file)
-                                          (do
-                                            (add-sync-list! (.getAbsolutePath file))
-                                            (refresh-list!))
-                                          ; (.. target getModel (addElement file))
-                                          (async/put! message-dialog-chan ["Notice" "Only folder could be add."]))
-                                        ))]
-      :export {
-        :actions (constantly :copy)
-        :start   (fn [c]
-                   (let [file (selection c)]
-                     [dnd/file-list-flavor [file]]))
-        ; No :finish needed
-      }))))
+  (doto
+    (web-listbox :id :folder-list
+      :model []
+      :selection-mode :single
+      :drag-enabled? true
+      :drop-mode :insert
+      :transfer-handler
+      (dnd/default-transfer-handler
+        :import [dnd/file-list-flavor (fn [{:keys [target data]}]
+                                        ; data is always List<java.io.File>
+                                        (doseq [file data]
+                                          ;; should confirm
+                                          (if (fs/directory? file)
+                                            (do
+                                              (add-sync-list! (.getAbsolutePath file))
+                                              (refresh-list!))
+                                            (async/put! message-dialog-chan ["Notice" "Only folder could be add."]))
+                                          ))]
+        :export {
+          :actions (constantly :copy)
+          :start   (fn [c]
+                     (let [file (selection c)]
+                       [dnd/file-list-flavor [file]]))
+          ; No :finish needed
+        }))
+      (web-popup-option-handler static-popup)))
 
 (defn list-tab []
   (border-panel :id :ltab
@@ -64,7 +77,6 @@
     :center (scrollable (list-box-pane))))
 
 (defn exit-fn [e]
-  (println "saving config...")
   (let [b (.getBounds @rootpane)
         b [(.-x b) (.-y b) (.-width b) (.-height b)]]
     (swap! setting assoc :bounds b))

@@ -23,6 +23,7 @@
      (println "no settings yet,maybe first time open"))))
 
 (defn save-settings! []
+  (println "saving config...")
   (let [p (home-path setting-fname)
         s (prn-str @setting)]
     (spit p s)))
