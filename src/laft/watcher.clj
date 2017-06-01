@@ -3,7 +3,7 @@
   (:require [clojure-watch.core :refer [start-watch]]))
 
 (defn monitor-dir
-  [path]
+  [path f]
   (println "monitoring directory: " path)
   (start-watch [{:path path
                  :event-types [:create :modify :delete]
@@ -11,8 +11,12 @@
                  :callback (fn [event filename] (println event filename))
                  :options {:recursive true}}]))
 
-(defn start-monitor []
-  (let [stop-watch (monitor-dir "E:\\sync")]
-  ; (Thread/sleep 20000) ; Manipulate files on the path
-  ; (stop-watch)
-  ))
+(def monitor-stops (atom {}))
+
+(defn start-monitor [path f]
+  (let [stop-watch (monitor-dir path f)]
+    (swap! monitor-stops assoc path stop-watch)))
+
+(defn stop-monitor [path]
+  (println "stoping monitor " path)
+  ((@monitor-stops path)))

@@ -33,15 +33,30 @@
 (defn delete-action! [e]
   (let [{:keys [folder-list]} (group-by-id @rootpane)
         sync-list (:sync-list @setting)
-        ; model (.getModel folder-list)
         item (selection folder-list)]
     (swap! setting assoc :sync-list (dissoc sync-list item))
+    (stop-monitor item)
+    (save-settings!)
     (refresh-list!)))
+
+(defn open-containing-folder! [e]
+  (let [{:keys [folder-list]} (group-by-id @rootpane)
+        item (selection folder-list)]
+    (desktop-open! (fs/file item))))
 
 (def static-popup
   (web-popup :items
-    [["Delete" delete-action!]
-     ]))
+    [["Open containing folder" open-containing-folder!]
+     ["Delete" delete-action!]]))
+
+(defn folder-changed []
+  ;; rescan all folder for change files to upload
+  )
+
+(defn watch-folders []
+ (let [sync-list (:sync-list @setting)]
+   (doseq [folder (keys sync-list)]
+     (start-monitor folder folder-changed))))
 
 (defn list-box-pane []
   (doto
@@ -59,6 +74,7 @@
                                           (if (fs/directory? file)
                                             (do
                                               (add-sync-list! (.getAbsolutePath file))
+                                              (start-monitor (.getAbsolutePath file) folder-changed)
                                               (refresh-list!))
                                             (async/put! message-dialog-chan ["Notice" "Only folder could be add."]))
                                           ))]
@@ -90,10 +106,10 @@
 (defn -main
   [& args]
   (println "Hello, Laft!")
-  (start-loops)
   (invoke-later
     (web-install)
     (load-settings!)
+    (start-loops)
     (reset! rootpane
       (web-frame :title "Laft"
         ;  :content "Hello, Seesaw"

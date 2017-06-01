@@ -20,7 +20,7 @@
            [com.alee.laf.menu WebPopupMenu WebMenuItem]
            [javax.swing UIManager]
            [java.awt.event WindowAdapter]
-           [java.awt Rectangle]))
+           [java.awt Rectangle Desktop]))
 ;; adapt seesaw to web-ui
 
 (defn setup-font! []
@@ -57,6 +57,9 @@
     (when-let [[title msg] (async/<! message-dialog-chan)]
       (message-dialog title msg)
       (recur))))
+
+(defn desktop-open! [target]
+  (.open (Desktop/getDesktop) target))
 
 (defn web-frame
   "Create a JFrame. Options:
@@ -265,7 +268,6 @@
         (let [p (make-popup target arg event)
               x (.x (.getPoint event))
               y (.y (.getPoint event))]
-          (println (.locationToIndex target (.getPoint event)))
           (if (instance? WebList target)
             (.setSelectedIndex target (.locationToIndex target (.getPoint event))))
           (.show p (to-widget event) x y))))))
@@ -282,7 +284,6 @@
               (.add menu menu-item)
               (if (= :separator item)
                 (.addSeparator menu)
-                (.add menu (make-widget item)))))))
-         )))
+                (.add menu (make-widget item))))))))))
 
 (widget-option-provider WebPopupMenu web-popup-options)
