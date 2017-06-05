@@ -1,26 +1,12 @@
 (ns laft.core
   (:gen-class)
   (:use [seesaw core swingx keymap util options]
-        [laft adapter watcher utils settings global])
+        [laft adapter utils settings global sia folder])
   (:require [seesaw.bind :as b]
             [seesaw.dev :as dev]
             [seesaw.dnd :as dnd]
             [me.raynes.fs :as fs]
             [clojure.core.async :as async]))
-
-; (defn add-behaviors [f]
-;   (let [{:keys [launch probar]} (group-by-id f)]
-;     (listen launch :action
-;       (fn [_]
-;         (let [s (auto-inc-dec)]
-;           (set-interval
-;             #(.setValue probar (s)) animation-delay))))))
-
-(defn tab1 []
-  (border-panel
-    :hgap 5 :vgap 5 :border 5
-    :center (web-progress-bar :id :probar :min 0 :max 100)
-    :south  (button :id :launch :text "Launch")))
 
 (defn refresh-list! []
   (let [{:keys [folder-list]} (group-by-id @rootpane)
@@ -35,7 +21,7 @@
         sync-list (:sync-list @setting)
         item (selection folder-list)]
     (swap! setting assoc :sync-list (dissoc sync-list item))
-    (stop-monitor item)
+    (stop-monitor-folder! item)
     (save-settings!)
     (refresh-list!)))
 
@@ -53,16 +39,6 @@
     [;;["Open containing folder" open-containing-folder!]
      ["Delete" delete-action!]]))
 
-(defn folder-changed [event filename]
-  ;; arrange a rescan all folder for changed files upload
-  (println event)
-  (println filename))
-
-(defn watch-folders []
- (let [sync-list (:sync-list @setting)]
-   (doseq [folder (keys sync-list)]
-     (start-monitor folder folder-changed))))
-
 (defn list-box-pane []
   (doto
     (web-listbox :id :folder-list
@@ -75,11 +51,10 @@
         :import [dnd/file-list-flavor (fn [{:keys [target data]}]
                                         ; data is always List<java.io.File>
                                         (doseq [file data]
-                                          ;; should confirm
                                           (if (fs/directory? file)
                                             (do
                                               (add-sync-list! (.getAbsolutePath file))
-                                              (start-monitor (.getAbsolutePath file) folder-changed)
+                                              (start-monitor-folder! (.getAbsolutePath file) folder-changed)
                                               (refresh-list!))
                                             (async/put! message-dialog-chan ["Notice" "Only folder could be add."]))
                                           ))]
@@ -105,17 +80,19 @@
   (save-settings!)
   (System/exit 0))
 
-(defn start-loops []
-  ; (start-monitor)
+(defn init []
+  (start-sync-interval)
+  (watch-folders)
   (start-message-dialog-loop))
 
 (defn -main
   [& args]
   (println "Hello, Laft!")
+  (println (sia-balance))
   (invoke-later
     (web-install)
     (load-settings!)
-    (start-loops)
+    (init)
     (reset! rootpane
       (web-frame :title "Laft"
         ;  :content "Hello, Seesaw"

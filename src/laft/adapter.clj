@@ -136,3 +136,18 @@
                 (.add menu (make-widget item))))))))))
 
 (widget-option-provider WebPopupMenu web-popup-options)
+
+
+; (defn add-behaviors [f]
+;   (let [{:keys [launch probar]} (group-by-id f)]
+;     (listen launch :action
+;       (fn [_]
+;         (let [s (auto-inc-dec)]
+;           (set-interval
+;             #(.setValue probar (s)) animation-delay))))))
+
+; (defn tab1 []
+;   (border-panel
+;     :hgap 5 :vgap 5 :border 5
+;     :center (web-progress-bar :id :probar :min 0 :max 100)
+;     :south  (button :id :launch :text "Launch")))

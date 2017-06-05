@@ -13,10 +13,10 @@
 
 (def monitor-stops (atom {}))
 
-(defn start-monitor [path f]
+(defn start-monitor! [path f]
   (let [stop-watch (monitor-dir path f)]
     (swap! monitor-stops assoc path stop-watch)))
 
-(defn stop-monitor [path]
+(defn stop-monitor! [path]
   (println "stoping monitor " path)
   ((@monitor-stops path)))

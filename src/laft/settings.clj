@@ -1,6 +1,6 @@
 (ns laft.settings
   (:gen-class)
-  (:use [laft global])
+  (:use [laft global utils])
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
             [me.raynes.fs :as fs]
@@ -28,10 +28,17 @@
         s (prn-str @setting)]
     (spit p s)))
 
+(defn map-base-name [files]
+  (map fs/base-name files))
+
 (defn add-sync-list! [folder]
   (let [sync-list (or (:sync-list @setting) {})]
-    (if (contains? sync-list folder)
-      (async/put! message-dialog-chan ["Notice" "Folder already exist"])
+    (cond
+      (contains? sync-list folder)
+        (async/put! message-dialog-chan ["Notice" "Folder already exist"])
+      (in? (map-base-name (keys sync-list)) (fs/base-name folder))
+        (async/put! message-dialog-chan ["Notice" "Folder name already exist"])
+      :else
       (do
         (swap! setting assoc :sync-list (assoc sync-list folder {}))
         (save-settings!)))))

@@ -9,7 +9,9 @@
                  [com.weblookandfeel/weblaf-core "1.2.8"]
                  [com.weblookandfeel/weblaf-ui "1.2.8"]
                  [clojure-watch "LATEST"]
-                 [me.raynes/fs "1.4.6"]]
+                 [me.raynes/fs "1.4.6"]
+                 [http-kit "2.2.0"]
+                 [org.clojure/data.json "0.2.6"]]
   :main ^:skip-aot laft.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})

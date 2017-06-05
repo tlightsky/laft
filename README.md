@@ -16,7 +16,9 @@ swing ui with sia backend, help upload things to sia network.
 
 ### auto sync folder files to sia
 
+## Known bugs
 
+the lib used would not watch new create subfolder
 
 ## License
 
